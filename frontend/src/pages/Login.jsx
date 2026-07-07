@@ -15,9 +15,9 @@ export default function Login() {
     e.preventDefault()
     setLoading(true)
     try {
-      await login(form.username, form.password)
+      const u = await login(form.username, form.password)
       toast.success('Xush kelibsiz!')
-      navigate('/')
+      if (u.is_staff) navigate('/admin-panel'); else navigate('/')
     } catch (err) {
       toast.error('Login yoki parol noto\'g\'ri')
     } finally {

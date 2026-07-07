@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const api = axios.create({
-  baseURL: 'https://medicalenglish.uz/api',
+  baseURL: '/api',
   headers: { 'Content-Type': 'application/json' }
 })
 
@@ -13,7 +13,7 @@ api.interceptors.response.use(
       const refresh = localStorage.getItem('refresh_token')
       if (refresh) {
         try {
-          const res = await axios.post('http://medicalenglish.uz/api/auth/refresh/', { refresh })
+          const res = await axios.post('/api/auth/refresh/', { refresh })
           const newToken = res.data.access
           api.defaults.headers.common['Authorization'] = `Bearer ${newToken}`
           error.config.headers['Authorization'] = `Bearer ${newToken}`

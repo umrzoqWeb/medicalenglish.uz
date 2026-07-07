@@ -20,4 +20,8 @@ urlpatterns = [
     path('dashboard/', views.DashboardView.as_view()),
     path('leaderboard/', views.LeaderboardView.as_view()),
     path('my-badges/', views.UserBadgesView.as_view()),
+    path('quiz/', views.QuizView.as_view()),
+    path('quiz/results/', views.QuizResultsView.as_view()),
+    path('certificate/<int:result_id>/', views.CertificateView.as_view()),
+    path('verify/<str:cert_id>/', views.CertificateVerifyView.as_view()),
 ]

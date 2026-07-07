@@ -1,19 +1,19 @@
 import { NavLink } from 'react-router-dom'
 import { 
-  BookOpen, GraduationCap, MessageCircle, FileText, 
+  Home, BookOpen, MessageCircle, FileText, 
   BookMarked, ClipboardList, Award, Info, Users, 
   UserCircle, Phone, Sparkles
 } from 'lucide-react'
 
 export default function Sidebar() {
   const menuItems = [
+    { to: '/', icon: Home, label: 'Bosh sahifa', color: 'from-indigo-500 to-blue-600' },
     { to: '/units', icon: BookOpen, label: 'Mavzular', color: 'from-blue-500 to-indigo-500' },
-    { to: '/independent', icon: GraduationCap, label: "Mustaqil ta'lim", color: 'from-purple-500 to-pink-500' },
     { to: '/idioms', icon: MessageCircle, label: 'Useful medical idioms', color: 'from-green-500 to-teal-500' },
     { to: '/phrasal-verbs', icon: Sparkles, label: 'Medicine related phrasal verbs', color: 'from-orange-500 to-red-500' },
     { to: '/vocabulary', icon: BookMarked, label: 'Glossariy', color: 'from-cyan-500 to-blue-500' },
     { to: '/test', icon: ClipboardList, label: 'Test', color: 'from-violet-500 to-purple-500' },
-    { to: '/exam', icon: Award, label: 'Imtixon (Sertifikat)', color: 'from-amber-500 to-orange-500' },
+    { to: '/test', icon: Award, label: 'Imtixon (Sertifikat)', color: 'from-amber-500 to-orange-500' },
     { to: '/about', icon: Info, label: 'Platforma haqida', color: 'from-slate-500 to-gray-600' },
     { to: '/leaderboard', icon: Users, label: 'Foydalanuvchilar', color: 'from-rose-500 to-pink-500' },
     { to: '/author', icon: UserCircle, label: 'Muallif haqida', color: 'from-indigo-500 to-blue-500' },

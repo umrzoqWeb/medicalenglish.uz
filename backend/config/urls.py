@@ -25,8 +25,8 @@ def serve_asset(request, path):
 def serve_frontend(request, path=''):
     """Serve React frontend - index.html for SPA routing"""
     # Don't serve frontend for admin URLs
-    if request.path.startswith('/admin'):
-        return HttpResponseRedirect('/admin/')
+    if request.path.startswith('/d-admin/') or request.path == '/d-admin':
+        return HttpResponseRedirect('/d-admin/')
     
     frontend_dir = settings.FRONTEND_DIR
     index_path = frontend_dir / 'index.html'
@@ -39,11 +39,12 @@ def serve_frontend(request, path=''):
 
 urlpatterns = [
     # Admin URLs - with and without trailing slash
-    path('admin/', admin.site.urls),
-    path('admin', lambda r: HttpResponseRedirect('/admin/')),  # Redirect /admin to /admin/
+    path('d-admin/', admin.site.urls),
+    path('d-admin', lambda r: HttpResponseRedirect('/d-admin/')),  # Redirect /admin to /admin/
     
     # API URLs
     path('api/', include('api.urls')),
+    path('api/admin-panel/', include('api.admin_urls')),
     
     # Assets
     re_path(r'^assets/(?P<path>.+)$', serve_asset),

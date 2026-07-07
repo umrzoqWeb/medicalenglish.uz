@@ -252,9 +252,13 @@ class PhrasalVerbViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class LeaderboardView(generics.ListAPIView):
-    """Top users by points"""
+    """Top users by quiz score"""
     serializer_class = LeaderboardSerializer
-    queryset = User.objects.order_by('-points')[:50]
+    def get_queryset(self):
+        from django.db.models import Max
+        return User.objects.filter(is_staff=False).annotate(
+            best=Max('quiz_results__percentage')
+        ).order_by('-best')[:50]
 
 
 class BadgeViewSet(viewsets.ReadOnlyModelViewSet):
@@ -270,3 +274,170 @@ class UserBadgesView(generics.ListAPIView):
     
     def get_queryset(self):
         return UserBadge.objects.filter(user=self.request.user)
+import io
+import qrcode
+from reportlab.lib.colors import HexColor, white
+from reportlab.pdfgen import canvas
+from reportlab.lib.utils import ImageReader
+from django.http import HttpResponse
+from rest_framework.views import APIView
+from rest_framework.permissions import AllowAny
+
+TEMPLATE = '/home/medicalenglish/medicalenglish/backend/static/cert/cert_template.jpg'
+PW = 640
+PH = 426.5
+NAVY = HexColor('#0c2340')
+
+def get_grade(pct):
+    if pct >= 90: return 5, 'A (Excellent)'
+    elif pct >= 71: return 4, 'B (Good)'
+    elif pct >= 60: return 3, 'C (Satisfactory)'
+    return 0, 'F (Failed)'
+
+def generate_certificate_pdf(result):
+    user = result.user
+    full_name = f"{user.first_name} {user.last_name}".strip() or user.username
+    grade_num, grade_text = get_grade(result.percentage)
+    date_str = result.created_at.strftime('%d.%m.%Y')
+    cert_id = f"ME-{result.id:06d}"
+    verify_url = f"https://medicalenglishhub.uz/verify/{cert_id}"
+
+    buf = io.BytesIO()
+    c = canvas.Canvas(buf, pagesize=(PW, PH))
+    cx = PW / 2
+
+    c.drawImage(TEMPLATE, 0, 0, PW, PH)
+
+    # NAME - centered at (320, 211.5)
+    fs = 24 if len(full_name) <= 22 else (20 if len(full_name) <= 30 else 16)
+    c.setFillColor(NAVY)
+    c.setFont('Helvetica-Bold', fs)
+    c.drawCentredString(320, 213.5, full_name)
+
+    # SCORE - at (360, 174) - right of "with a score of"
+    c.setFont('Helvetica-BoldOblique', 10)
+    c.drawString(325, 172, f'{result.score}/{result.total} ({result.percentage}%)')
+
+    # GRADE - at (350, 141.5) - inside ribbon right of "Grade:"
+    c.setFillColor(white)
+    c.setFont('Helvetica-BoldOblique', 12)
+    c.drawString(290, 136.5, f'{grade_num} \u2014 {grade_text}')
+
+    # DATE - at (137.5, 104)
+    c.setFillColor(HexColor('#333333'))
+    c.setFont('Helvetica', 8)
+    c.drawString(112.5, 94, date_str)
+
+    # CERT ID - at (137.5, 82.5)
+    c.drawString(112.5, 73.5, cert_id)
+
+    # VERIFY - at (137.5, 62.5)
+    c.setFont('Helvetica', 6)
+    c.drawString(112.5, 52.5, verify_url)
+
+    # QR CODE - center at (562.5, 86.5), size ~50x50
+    qr = qrcode.make(verify_url, box_size=3, border=1)
+    qr_buf = io.BytesIO()
+    qr.save(qr_buf, format='PNG')
+    qr_buf.seek(0)
+    qs = 50
+    c.drawImage(ImageReader(qr_buf), 541.5 - qs/2, 83.5 - qs/2, qs, qs)
+
+    c.save()
+    buf.seek(0)
+    return buf
+
+
+class CertificateView(APIView):
+    authentication_classes = []
+    permission_classes = [AllowAny]
+    def get(self, request, result_id):
+        from .models import QuizResult
+        try:
+            result = QuizResult.objects.select_related('user').get(id=result_id)
+        except QuizResult.DoesNotExist:
+            return HttpResponse('Not found', status=404)
+        if result.percentage < 60:
+            return HttpResponse('Score too low', status=403)
+        buf = generate_certificate_pdf(result)
+        resp = HttpResponse(buf.read(), content_type='application/pdf')
+        resp['Content-Disposition'] = f'inline; filename=certificate_ME-{result.id:06d}.pdf'
+        return resp
+
+
+class CertificateVerifyView(APIView):
+    permission_classes = [AllowAny]
+    authentication_classes = []
+    def get(self, request, cert_id):
+        from .models import QuizResult
+        try:
+            rid = int(cert_id.replace('ME-', ''))
+            r = QuizResult.objects.select_related('user').get(id=rid)
+            if r.percentage < 60:
+                return HttpResponse('Invalid', status=404)
+            gn, gt = get_grade(r.percentage)
+            from rest_framework.response import Response
+            return Response({
+                'valid': True,
+                'name': f"{r.user.first_name} {r.user.last_name}".strip() or r.user.username,
+                'score': f"{r.score}/{r.total}",
+                'percentage': r.percentage,
+                'grade': f"{gn} \u2014 {gt}",
+                'date': r.created_at.strftime('%d.%m.%Y'),
+                'cert_id': cert_id,
+            })
+        except:
+            return HttpResponse('Not found', status=404)
+
+
+import random as _random
+
+class QuizView(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        from .models import QuizQuestion, QuizSettings, QuizResult
+        settings = QuizSettings.objects.first()
+        qcount = settings.questions_count if settings else 30
+        time_limit = settings.time_limit if settings else 0
+        max_attempts = settings.max_attempts if settings else 0
+        if max_attempts > 0:
+            used = QuizResult.objects.filter(user=request.user).count()
+            if used >= max_attempts:
+                return Response({'error':'attempts_exceeded','message':f'Urinishlar soni tugadi ({max_attempts})'}, status=403)
+        all_ids = list(QuizQuestion.objects.values_list('id', flat=True))
+        selected = _random.sample(all_ids, min(qcount, len(all_ids)))
+        questions = QuizQuestion.objects.filter(id__in=selected)
+        data = []
+        for q in questions:
+            opts = list(enumerate(q.options))
+            _random.shuffle(opts)
+            data.append({'id':q.id,'question':q.question,'options':[o[1] for o in opts],'mapping':[o[0] for o in opts]})
+        return Response({'questions':data,'settings':{'questions_count':qcount,'time_limit':time_limit,'max_attempts':max_attempts,'attempts_used':QuizResult.objects.filter(user=request.user).count(),'total_questions':QuizQuestion.objects.count()}})
+    def post(self, request):
+        from .models import QuizQuestion, QuizResult, QuizSettings
+        settings = QuizSettings.objects.first()
+        max_attempts = settings.max_attempts if settings else 0
+        if max_attempts > 0:
+            used = QuizResult.objects.filter(user=request.user).count()
+            if used >= max_attempts:
+                return Response({'error':'attempts_exceeded'}, status=403)
+        answers = request.data.get('answers', {})
+        score = 0; total = 0; details = []
+        for qid_str, selected_idx in answers.items():
+            try:
+                q = QuizQuestion.objects.get(id=int(qid_str))
+                total += 1
+                is_correct = selected_idx == q.correct
+                if is_correct: score += 1
+                details.append({'question_id':q.id,'selected':selected_idx,'correct':q.correct,'is_correct':is_correct})
+            except: pass
+        pct = round(score / total * 100) if total else 0
+        result = QuizResult.objects.create(user=request.user, score=score, total=total, percentage=pct, answers=details)
+        return Response({'id':result.id,'score':score,'total':total,'percentage':pct})
+
+class QuizResultsView(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        from .models import QuizResult
+        results = QuizResult.objects.filter(user=request.user)[:20]
+        return Response([{'id':r.id,'score':r.score,'total':r.total,'percentage':r.percentage,'created_at':r.created_at} for r in results])

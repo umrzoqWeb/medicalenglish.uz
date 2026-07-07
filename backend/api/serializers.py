@@ -11,7 +11,7 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'username', 'email', 'first_name', 'last_name', 
-                  'avatar', 'points', 'level', 'streak', 'badges_count']
+                  'avatar', 'points', 'level', 'streak', 'badges_count', 'is_staff']
         read_only_fields = ['points', 'level', 'streak']
     
     def get_badges_count(self, obj):
@@ -211,6 +211,16 @@ class PhrasalVerbSerializer(serializers.ModelSerializer):
 
 
 class LeaderboardSerializer(serializers.ModelSerializer):
+    best_score = serializers.SerializerMethodField()
+    best_percentage = serializers.SerializerMethodField()
     class Meta:
         model = User
-        fields = ['id', 'username', 'first_name', 'last_name', 'avatar', 'points', 'level']
+        fields = ['id', 'username', 'first_name', 'last_name', 'avatar', 'points', 'level', 'best_score', 'best_percentage']
+    def get_best_score(self, obj):
+        from .models import QuizResult
+        r = QuizResult.objects.filter(user=obj).order_by('-percentage').first()
+        return r.percentage if r else 0
+    def get_best_percentage(self, obj):
+        from .models import QuizResult
+        r = QuizResult.objects.filter(user=obj).order_by('-percentage').first()
+        return f'{r.score}/{r.total}' if r else '0/0'

@@ -148,3 +148,28 @@ class PhrasalVerb(models.Model):
     
     class Meta:
         ordering = ['verb']
+
+
+class QuizQuestion(models.Model):
+    question = models.TextField()
+    options = models.JSONField()
+    correct = models.IntegerField()
+    def __str__(self):
+        return self.question[:80]
+
+
+class QuizResult(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='quiz_results')
+    score = models.IntegerField()
+    total = models.IntegerField(default=30)
+    percentage = models.IntegerField()
+    answers = models.JSONField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        ordering = ['-created_at']
+
+
+class QuizSettings(models.Model):
+    questions_count = models.IntegerField(default=30)
+    time_limit = models.IntegerField(default=0)
+    max_attempts = models.IntegerField(default=0)

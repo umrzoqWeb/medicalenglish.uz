@@ -65,9 +65,9 @@ export default function Leaderboard() {
                 <div className="font-semibold truncate">{u.first_name || u.username}</div>
                 <div className="flex items-center justify-center gap-1 mt-1">
                   {getRankIcon(rank)}
-                  <span className="font-bold text-blue-600">{u.points}</span>
+                  <span className="font-bold text-blue-600">{u.best_score}%</span>
                 </div>
-                <div className="text-xs text-gray-500 mt-1">Level {u.level}</div>
+                <div className="text-xs text-gray-500 mt-1">Test: {u.best_percentage}</div>
               </div>
             )
           })}
@@ -101,12 +101,12 @@ export default function Leaderboard() {
                   {u.first_name || u.username}
                   {isCurrentUser && <span className="text-blue-500 text-xs ml-2">(Siz)</span>}
                 </div>
-                <div className="text-xs text-gray-500">Level {u.level}</div>
+                <div className="text-xs text-gray-500">Test: {u.best_percentage}</div>
               </div>
               
               <div className="text-right">
-                <div className="font-bold text-lg stat-number">{u.points}</div>
-                <div className="text-xs text-gray-500">ball</div>
+                <div className="font-bold text-lg stat-number">{u.best_score}%</div>
+                <div className="text-xs text-gray-500">test bali</div>
               </div>
             </div>
           )

@@ -11,9 +11,29 @@ adminApi.interceptors.request.use((config) => {
 })
 adminApi.interceptors.response.use(
   (r) => r,
-  (err) => {
-    if (err.response?.status === 401) {
-      window.location.href = '/login'
+  async (err) => {
+    const original = err.config
+    if (err.response?.status === 401 && !original._retry) {
+      original._retry = true
+      const refresh = localStorage.getItem('refresh_token')
+      if (refresh) {
+        try {
+          const res = await axios.post('/api/auth/refresh/', { refresh })
+          const newToken = res.data.access
+          try {
+            const stored = JSON.parse(localStorage.getItem('auth-storage') || '{}')
+            stored.state = stored.state || {}
+            stored.state.token = newToken
+            localStorage.setItem('auth-storage', JSON.stringify(stored))
+          } catch(e) {}
+          original.headers['Authorization'] = 'Bearer ' + newToken
+          return adminApi(original)
+        } catch {
+          localStorage.removeItem('refresh_token')
+          localStorage.removeItem('auth-storage')
+          window.location.href = '/login'
+        }
+      }
     }
     return Promise.reject(err)
   }

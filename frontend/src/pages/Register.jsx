@@ -150,7 +150,7 @@ export default function Register() {
         
         <p className="text-center text-sm text-gray-600 mt-6">
           Hisobingiz bormi?{' '}
-          <Link to="/login" className="text-blue-600 font-medium hover:underline">
+          <Link to="/login" className="text-teal-600 font-medium hover:underline">
             Kirish
           </Link>
         </p>

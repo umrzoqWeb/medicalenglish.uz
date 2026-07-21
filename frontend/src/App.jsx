@@ -65,6 +65,7 @@ export default function App() {
         <Route path="author" element={<Author />} />
         <Route path="contact" element={<Contact />} />
         <Route path="news" element={<News />} />
+        <Route path="task/:id" element={<ProtectedRoute><TaskPage /></ProtectedRoute>} />
         <Route path="test" element={<ProtectedRoute><QuizPage /></ProtectedRoute>} />
         <Route path="verify/:certId" element={<VerifyCertificate />} />
       </Route>

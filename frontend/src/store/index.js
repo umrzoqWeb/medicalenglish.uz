@@ -38,7 +38,9 @@ const useAuthStore = create(
           api.defaults.headers.common['Authorization'] = `Bearer ${token}`
           try {
             const res = await api.get('/profile/')
-            set({ user: res.data, isAuthenticated: true, _hydrated: true })
+            // After interceptor refresh, api.defaults has the NEW token
+            const currentToken = (api.defaults.headers.common['Authorization'] || '').replace('Bearer ', '') || token
+            set({ user: res.data, token: currentToken, isAuthenticated: true, _hydrated: true })
           } catch (e) {
             delete api.defaults.headers.common['Authorization']
             set({ token: null, user: null, isAuthenticated: false, _hydrated: true })

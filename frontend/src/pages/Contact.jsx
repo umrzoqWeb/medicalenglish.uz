@@ -1,128 +1,71 @@
-import { useState } from 'react'
-import { Mail, Phone, MapPin, Send, CheckCircle } from 'lucide-react'
-import toast from 'react-hot-toast'
+import { Mail, Phone, MapPin, GraduationCap, Globe, Award } from 'lucide-react'
+
+const bgUrl = '/static/bstu_bg.jpg'
+const photoUrl = '/static/sitora.jpg'
+
+const experiences = [
+  { icon: GraduationCap, text: 'Professional Development Programme, NILE Institute, Norwich, England' },
+  { icon: Globe, text: 'Faculty Enrichment Program (FEP) Alumni - Missouri State University, USA' },
+  { icon: Award, text: 'University Representative at an International Conference - Hacı Bayram Veli University, Ankara, Turkey' },
+  { icon: Globe, text: 'University Representative at an International Conference - Canadian University Dubai, UAE' },
+]
 
 export default function Contact() {
-  const [form, setForm] = useState({ name: '', email: '', message: '' })
-  const [sent, setSent] = useState(false)
-  const [loading, setLoading] = useState(false)
-  
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    setLoading(true)
-    
-    // Simulate sending
-    await new Promise(r => setTimeout(r, 1000))
-    
-    setSent(true)
-    setLoading(false)
-    toast.success('Xabar yuborildi!')
-  }
-  
-  if (sent) {
-    return (
-      <div className="animate-fade-in">
-        <div className="card text-center py-12">
-          <div className="w-20 h-20 mx-auto bg-green-100 rounded-full flex items-center justify-center mb-4">
-            <CheckCircle className="w-10 h-10 text-green-500" />
-          </div>
-          <h2 className="text-xl font-bold mb-2">Xabar yuborildi!</h2>
-          <p className="text-gray-600 mb-4">Tez orada siz bilan bog'lanamiz.</p>
-          <button onClick={() => setSent(false)} className="btn btn-primary">
-            Yana xabar yuborish
-          </button>
-        </div>
-      </div>
-    )
-  }
-  
   return (
-    <div className="animate-fade-in">
-      <div className="card-colored bg-gradient-to-r from-green-500 to-teal-600 text-white mb-6">
-        <h1 className="text-2xl font-bold mb-2">Bog'lanish</h1>
-        <p className="text-white/80">Savollaringiz bo'lsa, biz bilan bog'laning</p>
-      </div>
-      
-      <div className="grid md:grid-cols-3 gap-4 mb-6">
-        <div className="card text-center">
-          <div className="w-12 h-12 mx-auto bg-blue-100 rounded-xl flex items-center justify-center mb-3">
-            <Mail className="w-6 h-6 text-blue-600" />
-          </div>
-          <h3 className="font-semibold mb-1">Email</h3>
-          <a href="mailto:info@efms.uz" className="text-sm text-blue-600">info@efms.uz</a>
-        </div>
-        
-        <div className="card text-center">
-          <div className="w-12 h-12 mx-auto bg-green-100 rounded-xl flex items-center justify-center mb-3">
-            <Phone className="w-6 h-6 text-green-600" />
-          </div>
-          <h3 className="font-semibold mb-1">Telefon</h3>
-          <a href="tel:+998901234567" className="text-sm text-green-600">+998 90 123 45 67</a>
-        </div>
-        
-        <div className="card text-center">
-          <div className="w-12 h-12 mx-auto bg-orange-100 rounded-xl flex items-center justify-center mb-3">
-            <MapPin className="w-6 h-6 text-orange-600" />
-          </div>
-          <h3 className="font-semibold mb-1">Manzil</h3>
-          <p className="text-sm text-gray-600">Buxoro shahri</p>
+    <div className="space-y-6 animate-fade-in">
+      {/* Hero with background */}
+      <div className="relative overflow-hidden rounded-2xl h-64 md:h-80">
+        <div className="absolute inset-0 bg-cover bg-center" style={{backgroundImage: `url(${bgUrl})`}}/>
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/50 to-transparent"/>
+        <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8 text-white">
+          <h1 className="text-2xl md:text-4xl font-black">Contact Details</h1>
+          <p className="text-white/70 mt-2">Bukhara State Technical University</p>
         </div>
       </div>
-      
-      <div className="card">
-        <h3 className="font-semibold mb-4">Xabar yuborish</h3>
-        
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Ismingiz</label>
-              <input
-                type="text"
-                value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-                className="input"
-                placeholder="Ismingiz"
-                required
-              />
+
+      {/* Profile card */}
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+        <div className="md:flex">
+          {/* Photo */}
+          <div className="md:w-72 shrink-0">
+            <img src={photoUrl} alt="Sitora Mukhamedjanova" className="w-full h-72 md:h-full object-cover"/>
+          </div>
+          {/* Info */}
+          <div className="p-6 md:p-8 flex-1">
+            <h2 className="text-2xl font-bold text-gray-800 mb-1">Sitora Mukhamedjanova</h2>
+            <p className="text-teal-600 font-semibold text-sm mb-4">PhD, Associate Professor</p>
+            
+            <div className="space-y-3 mb-6">
+              <div className="flex items-start gap-3">
+                <MapPin className="w-5 h-5 text-teal-500 shrink-0 mt-0.5"/>
+                <span className="text-gray-600 text-sm">Bukhara State Technical University, 15 Murtazaev Street, Bukhara, 200100, Uzbekistan</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <Phone className="w-5 h-5 text-teal-500 shrink-0"/>
+                <a href="tel:+998914090021" className="text-gray-600 text-sm hover:text-teal-600 transition-colors">+998 91 409 00 21</a>
+              </div>
+              <div className="flex items-center gap-3">
+                <Mail className="w-5 h-5 text-teal-500 shrink-0"/>
+                <a href="mailto:sitoramukhamedjanova@gmail.com" className="text-gray-600 text-sm hover:text-teal-600 transition-colors">sitoramukhamedjanova@gmail.com</a>
+              </div>
             </div>
+
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-              <input
-                type="email"
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
-                className="input"
-                placeholder="email@example.com"
-                required
-              />
+              <h3 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
+                <Globe className="w-4 h-4 text-teal-500"/>
+                International Professional Development & Academic Experience
+              </h3>
+              <div className="space-y-2.5">
+                {experiences.map((exp, i) => (
+                  <div key={i} className="flex items-start gap-3 bg-teal-50/50 rounded-xl p-3 border border-teal-100/50">
+                    <exp.icon className="w-4 h-4 text-teal-600 shrink-0 mt-0.5"/>
+                    <span className="text-gray-700 text-sm leading-relaxed">{exp.text}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Xabar</label>
-            <textarea
-              value={form.message}
-              onChange={(e) => setForm({ ...form, message: e.target.value })}
-              className="input min-h-[120px]"
-              placeholder="Xabaringizni yozing..."
-              required
-            />
-          </div>
-          
-          <button type="submit" disabled={loading} className="btn btn-primary">
-            {loading ? (
-              <>
-                <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
-                Yuborilmoqda...
-              </>
-            ) : (
-              <>
-                <Send className="w-4 h-4" />
-                Yuborish
-              </>
-            )}
-          </button>
-        </form>
+        </div>
       </div>
     </div>
   )

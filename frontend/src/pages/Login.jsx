@@ -1,16 +1,21 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, Navigate } from 'react-router-dom'
 import { LogIn, Eye, EyeOff } from 'lucide-react'
 import { useAuthStore } from '../store'
 import toast from 'react-hot-toast'
 
 export default function Login() {
+  const { login, isAuthenticated, user, _hydrated } = useAuthStore()
+  const navigate = useNavigate()
   const [form, setForm] = useState({ username: '', password: '' })
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
-  const { login } = useAuthStore()
-  const navigate = useNavigate()
-  
+
+  if (_hydrated && isAuthenticated) {
+    if (user?.is_staff) return <Navigate to="/admin-panel" />
+    return <Navigate to="/" />
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
@@ -19,23 +24,23 @@ export default function Login() {
       toast.success('Xush kelibsiz!')
       if (u.is_staff) navigate('/admin-panel'); else navigate('/')
     } catch (err) {
-      toast.error('Login yoki parol noto\'g\'ri')
+      toast.error("Login yoki parol noto'g'ri")
     } finally {
       setLoading(false)
     }
   }
-  
+
   return (
     <div className="max-w-md mx-auto py-8 animate-fade-in">
       <div className="card">
         <div className="text-center mb-6">
-          <div className="w-16 h-16 mx-auto bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mb-4">
+          <div className="w-16 h-16 mx-auto bg-gradient-to-br from-teal-500 to-cyan-600 rounded-2xl flex items-center justify-center mb-4">
             <LogIn className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-2xl font-bold">Tizimga kirish</h1>
           <p className="text-gray-500 text-sm mt-1">Hisobingizga kiring</p>
         </div>
-        
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Login</label>
@@ -48,7 +53,7 @@ export default function Login() {
               required
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Parol</label>
             <div className="relative">
@@ -69,7 +74,7 @@ export default function Login() {
               </button>
             </div>
           </div>
-          
+
           <button type="submit" disabled={loading} className="btn btn-primary w-full py-2.5">
             {loading ? (
               <>
@@ -81,10 +86,10 @@ export default function Login() {
             )}
           </button>
         </form>
-        
+
         <p className="text-center text-sm text-gray-600 mt-6">
           Hisobingiz yo'qmi?{' '}
-          <Link to="/register" className="text-blue-600 font-medium hover:underline">
+          <Link to="/register" className="text-teal-600 font-medium hover:underline">
             Ro'yxatdan o'ting
           </Link>
         </p>

@@ -3,8 +3,10 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import { ArrowLeft, CheckCircle, XCircle, RefreshCw, ArrowRight, Sparkles, Mic, MicOff, Square } from 'lucide-react'
 import api from '../services/api'
 import toast from 'react-hot-toast'
+import { useT } from '../i18n'
 
 export default function TaskPage() {
+  const t = useT()
   const { id } = useParams()
   const navigate = useNavigate()
   const [task, setTask] = useState(null)
@@ -24,7 +26,7 @@ export default function TaskPage() {
       setTask(res.data)
       setLoading(false)
     }).catch(() => {
-      toast.error('Topshiriq topilmadi')
+      toast.error(t('task.notFound'))
       navigate('/units')
     })
     
@@ -86,11 +88,11 @@ export default function TaskPage() {
     recognition.onerror = (event) => {
       console.error('Speech recognition error:', event.error)
       if (event.error === 'no-speech') {
-        toast.error('Ovoz eshitilmadi. Iltimos, gapiring.')
+        toast.error(t('task.noSpeech'))
       } else if (event.error === 'not-allowed') {
-        toast.error('Mikrofondan foydalanishga ruxsat berilmadi.')
+        toast.error(t('task.micDenied'))
       } else {
-        toast.error('Ovoz yozishda xatolik: ' + event.error)
+        toast.error(t('task.recError') + event.error)
       }
       stopRecording()
     }
@@ -120,7 +122,7 @@ export default function TaskPage() {
       recognitionRef.current.stop()
       recognitionRef.current = null
     }
-    toast.success('Ovoz yozish to\'xtatildi')
+    toast.success(t('task.recStopped'))
   }
   
   const formatTime = (seconds) => {
@@ -135,10 +137,10 @@ export default function TaskPage() {
       const res = await api.post(`/tasks/${id}/submit/`, { answers })
       setResult(res.data)
       if (res.data.passed) {
-        toast.success(`Tabriklaymiz! ${res.data.score}%`)
+        toast.success(`${t('task.congrats')} ${res.data.score}%`)
       }
     } catch (err) {
-      toast.error('Xatolik yuz berdi')
+      toast.error(t('common.error'))
     } finally {
       setSubmitting(false)
     }
@@ -152,7 +154,7 @@ export default function TaskPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+        <div className="animate-spin w-8 h-8 border-4 border-teal-500 border-t-transparent rounded-full"></div>
       </div>
     )
   }
@@ -161,11 +163,11 @@ export default function TaskPage() {
     <div className="max-w-3xl mx-auto animate-fade-in">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <Link to={`/units/${task.unit}`} className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600">
+        <Link to={`/units/${task.unit}`} className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-teal-600">
           <ArrowLeft className="w-4 h-4" />
-          Orqaga
+          {t('task.back')}
         </Link>
-        <span className="badge badge-yellow">{task.points} ball</span>
+        <span className="badge badge-yellow">{task.points} {t('common.points')}</span>
       </div>
       
       {/* Task info */}
@@ -173,7 +175,7 @@ export default function TaskPage() {
         <div className="flex items-center gap-2 mb-2">
           <span className="badge badge-blue">Task {task.number}</span>
           {task.is_ai_evaluated && (
-            <span className="badge badge-purple"><Sparkles className="w-3 h-3 mr-1" /> AI Baholash</span>
+            <span className="badge badge-purple"><Sparkles className="w-3 h-3 mr-1" /> {t('home.feat2.title')}</span>
           )}
         </div>
         <h1 className="text-xl font-bold mb-1">{task.title}</h1>
@@ -196,7 +198,7 @@ export default function TaskPage() {
             <div className="flex-1">
               <div className="text-3xl font-bold">{result.score}%</div>
               <div className="text-sm text-gray-600">
-                {result.passed ? 'Muvaffaqiyatli bajarildi!' : 'Qayta urinib ko\'ring'}
+                {result.passed ? t('task.passed') : t('task.tryAgain')}
               </div>
             </div>
           </div>
@@ -205,10 +207,10 @@ export default function TaskPage() {
           
           <div className="flex gap-2 mt-4">
             <button onClick={handleRetry} className="btn btn-outline">
-              <RefreshCw className="w-4 h-4" /> Qayta
+              <RefreshCw className="w-4 h-4" /> {t('task.retry')}
             </button>
             <Link to={`/units/${task.unit}`} className="btn btn-primary">
-              Keyingi <ArrowRight className="w-4 h-4" />
+              {t('common.next')} <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
         </div>
@@ -229,13 +231,13 @@ export default function TaskPage() {
                       {q.options.map((opt, j) => (
                         <label key={j} className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all ${
                           answers[q.id] === opt 
-                            ? 'border-blue-500 bg-blue-50' 
+                            ? 'border-teal-500 bg-teal-50' 
                             : 'border-gray-200 hover:border-gray-300'
                         }`}>
                           <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                            answers[q.id] === opt ? 'border-blue-500' : 'border-gray-300'
+                            answers[q.id] === opt ? 'border-teal-500' : 'border-gray-300'
                           }`}>
-                            {answers[q.id] === opt && <div className="w-2.5 h-2.5 rounded-full bg-blue-500" />}
+                            {answers[q.id] === opt && <div className="w-2.5 h-2.5 rounded-full bg-teal-500" />}
                           </div>
                           <span className="text-sm">{opt}</span>
                           <input
@@ -254,7 +256,7 @@ export default function TaskPage() {
                       value={answers[q.id] || ''}
                       onChange={(e) => handleAnswer(q.id, e.target.value)}
                       className="input"
-                      placeholder="Javobingizni yozing..."
+                      placeholder={t('task.phAnswer')}
                     />
                   )}
                 </div>
@@ -267,30 +269,30 @@ export default function TaskPage() {
             <div className="card mb-6">
               {task.task_type === 'translation' && (
                 <>
-                  <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg mb-4">
-                    <p className="text-xs text-blue-600 font-medium mb-1">Inglizcha matn:</p>
+                  <div className="bg-teal-50 border border-teal-200 p-4 rounded-lg mb-4">
+                    <p className="text-xs text-teal-600 font-medium mb-1">{t('task.enText')}</p>
                     <p className="text-gray-800">{task.content?.text}</p>
                   </div>
                   <textarea
                     value={answers.translation || ''}
                     onChange={(e) => handleAnswer('translation', e.target.value)}
                     className="input min-h-[120px]"
-                    placeholder="O'zbekcha tarjimani yozing..."
+                    placeholder={t('task.phTranslate')}
                   />
                 </>
               )}
               
               {task.task_type === 'synonyms' && (
                 <>
-                  <div className="bg-purple-50 border border-purple-200 p-6 rounded-lg mb-4 text-center">
-                    <p className="text-sm text-purple-600 mb-1">So'z:</p>
-                    <p className="text-3xl font-bold text-purple-700">{task.content?.word}</p>
+                  <div className="bg-cyan-50 border border-cyan-200 p-6 rounded-lg mb-4 text-center">
+                    <p className="text-sm text-cyan-600 mb-1">{t('task.word')}</p>
+                    <p className="text-3xl font-bold text-cyan-700">{task.content?.word}</p>
                   </div>
                   <textarea
                     value={answers.synonyms || ''}
                     onChange={(e) => handleAnswer('synonyms', e.target.value)}
                     className="input min-h-[100px]"
-                    placeholder="Inglizcha sinonimlarni yozing (vergul bilan)..."
+                    placeholder={t('task.phSynonyms')}
                   />
                 </>
               )}
@@ -298,10 +300,10 @@ export default function TaskPage() {
               {task.task_type === 'speaking' && (
                 <>
                   <div className="bg-orange-50 border border-orange-200 p-4 rounded-lg mb-4">
-                    <p className="text-sm text-orange-600 font-medium mb-1">Mavzu:</p>
+                    <p className="text-sm text-orange-600 font-medium mb-1">{t('task.topic')}</p>
                     <p className="text-gray-800 font-medium">{task.content?.topic}</p>
                     {task.content?.points && (
-                      <p className="text-sm text-gray-500 mt-2">Gapiring: {task.content.points}</p>
+                      <p className="text-sm text-gray-500 mt-2">{t('task.speakAbout')}{task.content.points}</p>
                     )}
                   </div>
                   
@@ -310,10 +312,10 @@ export default function TaskPage() {
                     {!isRecording ? (
                       <button
                         onClick={startRecording}
-                        className="flex items-center gap-3 px-6 py-4 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-2xl shadow-lg hover:shadow-xl hover:scale-105 transition-all"
+                        className="flex items-center gap-3 px-6 py-4 bg-gradient-to-r from-red-500 to-emerald-500 text-white rounded-2xl shadow-lg hover:shadow-xl hover:scale-105 transition-all"
                       >
                         <Mic className="w-6 h-6" />
-                        <span className="font-semibold">Ovoz yozishni boshlash</span>
+                        <span className="font-semibold">{t('task.startRec')}</span>
                       </button>
                     ) : (
                       <button
@@ -321,7 +323,7 @@ export default function TaskPage() {
                         className="flex items-center gap-3 px-6 py-4 bg-gradient-to-r from-gray-700 to-gray-900 text-white rounded-2xl shadow-lg hover:shadow-xl transition-all animate-pulse"
                       >
                         <Square className="w-6 h-6" />
-                        <span className="font-semibold">To'xtatish</span>
+                        <span className="font-semibold">{t('task.stop')}</span>
                         <span className="bg-red-500 px-3 py-1 rounded-full text-sm font-mono">
                           {formatTime(recordingTime)}
                         </span>
@@ -336,7 +338,7 @@ export default function TaskPage() {
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
                       </span>
-                      <span className="text-sm font-medium">Yozilmoqda... Ingliz tilida gapiring</span>
+                      <span className="text-sm font-medium">{t('task.recording')}</span>
                     </div>
                   )}
                   
@@ -346,17 +348,17 @@ export default function TaskPage() {
                       value={answers.transcript || ''}
                       onChange={(e) => handleAnswer('transcript', e.target.value)}
                       className="input min-h-[150px]"
-                      placeholder={isRecording ? "Gapirayotganingiz shu yerda ko'rinadi..." : "Yoki matnni qo'lda yozing..."}
+                      placeholder={isRecording ? t('task.phSpeaking') : t('task.phManual')}
                     />
                     {answers.transcript && (
                       <div className="absolute bottom-3 right-3 text-xs text-gray-400">
-                        {answers.transcript.split(/\s+/).filter(w => w).length} so'z
+                        {answers.transcript.split(/\s+/).filter(w => w).length} {t('task.words')}
                       </div>
                     )}
                   </div>
                   
                   <p className="text-xs text-gray-500 mt-2 text-center">
-                    💡 Mikrofon tugmasini bosing va ingliz tilida gapiring. Brauzer avtomatik matnga aylantiradi.
+                    {t('task.micHint')}
                   </p>
                 </>
               )}
@@ -364,14 +366,14 @@ export default function TaskPage() {
               {task.task_type === 'writing' && (
                 <>
                   <div className="bg-green-50 border border-green-200 p-4 rounded-lg mb-4">
-                    <p className="text-sm text-green-600 font-medium mb-1">Topshiriq:</p>
+                    <p className="text-sm text-green-600 font-medium mb-1">{t('task.taskLabel')}</p>
                     <p className="text-gray-800">{task.content?.prompt}</p>
                   </div>
                   <textarea
                     value={answers.essay || ''}
                     onChange={(e) => handleAnswer('essay', e.target.value)}
                     className="input min-h-[200px]"
-                    placeholder="Ingliz tilida yozing..."
+                    placeholder={t('task.phWrite')}
                   />
                 </>
               )}
@@ -379,14 +381,14 @@ export default function TaskPage() {
               {task.task_type === 'video' && (
                 <>
                   <div className="bg-red-50 border border-red-200 p-4 rounded-lg mb-4">
-                    <p className="text-sm text-red-600 font-medium mb-1">Video mavzusi:</p>
+                    <p className="text-sm text-red-600 font-medium mb-1">{t('task.videoTopic')}</p>
                     <p className="text-gray-800">{task.content?.topic}</p>
                   </div>
                   <textarea
                     value={answers.retelling || ''}
                     onChange={(e) => handleAnswer('retelling', e.target.value)}
                     className="input min-h-[150px]"
-                    placeholder="Ingliz tilida qayta hikoya qiling..."
+                    placeholder={t('task.phRetell')}
                   />
                 </>
               )}
@@ -400,7 +402,7 @@ export default function TaskPage() {
                         value={answers[`q_${i}`] || ''}
                         onChange={(e) => handleAnswer(`q_${i}`, e.target.value)}
                         className="input min-h-[80px]"
-                        placeholder="Ingliz tilida javob yozing..."
+                        placeholder={t('task.phAnswerEn')}
                       />
                     </div>
                   ))}
@@ -417,10 +419,10 @@ export default function TaskPage() {
             {submitting ? (
               <>
                 <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
-                Tekshirilmoqda...
+                {t('task.checking')}
               </>
             ) : (
-              'Yuborish'
+              t('task.submit')
             )}
           </button>
         </>

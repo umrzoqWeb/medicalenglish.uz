@@ -29,10 +29,12 @@ import AdminUsers from './admin/pages/AdminUsers'
 import AdminBadges from './admin/pages/AdminBadges'
 import AdminQuizResults from './admin/pages/AdminQuizResults'
 import AdminProgress from './admin/pages/AdminProgress'
+import AdminStructure from "./admin/pages/AdminStructure"
+import AdminStudents from "./admin/pages/AdminStudents"
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated, user, _hydrated } = useAuthStore()
-  if (!_hydrated) return <div className="flex items-center justify-center min-h-screen"><div className="animate-spin w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full"></div></div>
+  if (!_hydrated) return <div className="flex items-center justify-center min-h-screen"><div className="animate-spin w-8 h-8 border-4 border-teal-500 border-t-transparent rounded-full"></div></div>
   if (!isAuthenticated) return <Navigate to="/login" />
   if (user?.is_staff) return <Navigate to="/admin-panel" />
   return children
@@ -40,7 +42,7 @@ function ProtectedRoute({ children }) {
 
 function AdminRoute({ children }) {
   const { isAuthenticated, user, _hydrated } = useAuthStore()
-  if (!_hydrated) return <div className="flex items-center justify-center min-h-screen"><div className="animate-spin w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full"></div></div>
+  if (!_hydrated) return <div className="flex items-center justify-center min-h-screen"><div className="animate-spin w-8 h-8 border-4 border-teal-500 border-t-transparent rounded-full"></div></div>
   if (!isAuthenticated) return <Navigate to="/login" />
   if (!user?.is_staff) return <Navigate to="/" />
   return children
@@ -81,6 +83,8 @@ export default function App() {
         <Route path="badges" element={<AdminBadges />} />
         <Route path="quiz-results" element={<AdminQuizResults />} />
         <Route path="progress" element={<AdminProgress />} />
+        <Route path="structure" element={<AdminStructure />} />
+        <Route path="structure/:uniId" element={<AdminStudents />} />
       </Route>
     </Routes>
   )

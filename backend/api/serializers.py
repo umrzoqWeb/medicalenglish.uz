@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import Badge, UserBadge, Unit, Task, TaskQuestion, UserProgress, Vocabulary, MedicalIdiom, PhrasalVerb
+from .models import Badge, UserBadge, Unit, Task, TaskQuestion, UserProgress, Vocabulary, MedicalIdiom, PhrasalVerb, University
 
 User = get_user_model()
 
@@ -128,7 +128,7 @@ class UnitSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Unit
-        fields = ['id', 'number', 'title', 'description', 'tasks', 'progress']
+        fields = ['id', 'number', 'title', 'description', 'reading_text', 'reading_pdf', 'tasks', 'progress']
     
     def get_progress(self, obj):
         request = self.context.get('request')
@@ -224,3 +224,18 @@ class LeaderboardSerializer(serializers.ModelSerializer):
         from .models import QuizResult
         r = QuizResult.objects.filter(user=obj).order_by('-percentage').first()
         return f'{r.score}/{r.total}' if r else '0/0'
+
+
+class UniversitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = University
+        fields = ['id', 'name', 'short_name', 'student_count', 'logo', 'order']
+
+
+class StudentListSerializer(serializers.ModelSerializer):
+    university_name = serializers.CharField(source='university.name', read_only=True)
+    university_short = serializers.CharField(source='university.short_name', read_only=True)
+
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'first_name', 'last_name', 'plain_password', 'university', 'university_name', 'university_short', 'points', 'level', 'streak']

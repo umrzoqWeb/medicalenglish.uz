@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { useT } from '../i18n'
 
 const slides = [
-  { title: "Tibbiyot ingliz tilini o'rganing", subtitle: "15 ta mavzu, 195 ta topshiriq bilan professional kurs" },
-  { title: 'AI bilan baholash', subtitle: "Sun'iy intellekt yordamida javoblaringiz real-time baholanadi" },
-  { title: 'Sertifikat oling', subtitle: "Testdan 60% dan yuqori to'plang va QR kodli sertifikat oling" },
+  { titleKey: 'slider.1.title', subKey: 'slider.1.sub' },
+  { titleKey: 'slider.2.title', subKey: 'slider.2.sub' },
+  { titleKey: 'slider.3.title', subKey: 'slider.3.sub' },
 ]
 
 function ECGLine() {
@@ -73,6 +74,7 @@ function MedicalVisual() {
 }
 
 export default function Slider() {
+  const t = useT()
   const [cur, setCur] = useState(0)
   useEffect(() => { const t = setInterval(() => setCur(p => (p+1) % slides.length), 5000); return () => clearInterval(t) }, [])
 
@@ -89,8 +91,8 @@ export default function Slider() {
                   <span className="relative flex h-2 w-2"><span className="animate-ping absolute h-full w-full rounded-full bg-teal-400 opacity-75"></span><span className="relative rounded-full h-2 w-2 bg-teal-300"></span></span>
                   Medical English Platform
                 </div>
-                <h2 className="text-2xl md:text-5xl font-black mb-3 md:mb-5 leading-tight">{slides[cur].title}</h2>
-                <p className="text-base md:text-xl text-white/80 mb-6 md:mb-8 leading-relaxed">{slides[cur].subtitle}</p>
+                <h2 className="text-2xl md:text-5xl font-black mb-3 md:mb-5 leading-tight">{t(slides[cur].titleKey)}</h2>
+                <p className="text-base md:text-xl text-white/80 mb-6 md:mb-8 leading-relaxed">{t(slides[cur].subKey)}</p>
               </div>
             </div>
             <MedicalVisual />

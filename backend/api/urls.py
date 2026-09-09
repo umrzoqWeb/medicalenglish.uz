@@ -24,4 +24,7 @@ urlpatterns = [
     path('quiz/results/', views.QuizResultsView.as_view()),
     path('certificate/<int:result_id>/', views.CertificateView.as_view()),
     path('verify/<str:cert_id>/', views.CertificateVerifyView.as_view()),
+    path('universities/', views.UniversityListView.as_view()),
+    path('students/', views.StudentListView.as_view()),
+    path('universities/<int:pk>/stats/', views.UniversityStatsView.as_view()),
 ]

@@ -17,17 +17,15 @@ export default function AdminUsers() {
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-slate-50"><tr className="text-left text-slate-600">
-            <th className="px-4 py-3 font-medium">Foydalanuvchi</th><th className="px-4 py-3 font-medium">Email</th>
+            <th className="px-4 py-3 font-medium">FIO</th><th className="px-4 py-3 font-medium">Foydalanuvchi</th><th className="px-4 py-3 font-medium">Email</th>
             <th className="px-4 py-3 font-medium text-center">Ball</th><th className="px-4 py-3 font-medium text-center">Daraja</th>
             <th className="px-4 py-3 font-medium text-center">Streak</th><th className="px-4 py-3 font-medium text-center">Topshiriqlar</th>
             <th className="px-4 py-3 font-medium">Oxirgi faollik</th><th className="px-4 py-3 font-medium">Ro'yxatdan</th>
           </tr></thead>
           <tbody>{users.map(u => (
             <tr key={u.id} className="border-t border-slate-100 hover:bg-slate-50">
-              <td className="px-4 py-3">
-                <div><span className="font-medium text-slate-800">{u.first_name || u.username}</span>
-                  {u.first_name && <span className="text-slate-400 ml-1 text-xs">@{u.username}</span>}</div>
-              </td>
+              <td className="px-4 py-3 font-semibold text-slate-800">{u.first_name} {u.last_name}</td>
+              <td className="px-4 py-3"><span className="font-medium text-slate-800">{u.username}</span></td>
               <td className="px-4 py-3 text-slate-600">{u.email || '-'}</td>
               <td className="px-4 py-3 text-center font-semibold text-amber-600">{u.points}</td>
               <td className="px-4 py-3 text-center"><span className="bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full text-xs font-medium">{u.level}</span></td>

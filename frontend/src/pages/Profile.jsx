@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react'
 import { User, Award, Zap, Flame, CheckCircle } from 'lucide-react'
 import { useAuthStore } from '../store'
+import { useT } from '../i18n'
 import api from '../services/api'
 import toast from 'react-hot-toast'
 
 export default function Profile() {
   const { user, updateUser } = useAuthStore()
+  const t = useT()
   const [form, setForm] = useState({
     first_name: '',
     last_name: '',
@@ -33,9 +35,9 @@ export default function Profile() {
     try {
       const res = await api.patch('/profile/', form)
       updateUser(res.data)
-      toast.success('Saqlandi!')
+      toast.success(t('common.saved'))
     } catch (err) {
-      toast.error('Xatolik yuz berdi')
+      toast.error(t('common.error'))
     } finally {
       setSaving(false)
     }
@@ -48,7 +50,7 @@ export default function Profile() {
   return (
     <div className="max-w-2xl mx-auto animate-fade-in">
       {/* Profile header */}
-      <div className="card-colored bg-gradient-to-r from-blue-500 to-purple-600 text-white mb-6">
+      <div className="card-colored bg-gradient-to-r from-teal-500 to-cyan-600 text-white mb-6">
         <div className="flex items-center gap-4">
           <div className="w-20 h-20 rounded-2xl bg-white/20 flex items-center justify-center text-3xl font-bold">
             {user.first_name?.[0] || user.username[0].toUpperCase()}
@@ -61,10 +63,10 @@ export default function Profile() {
                 <Award className="w-4 h-4" /> Level {user.level}
               </span>
               <span className="flex items-center gap-1">
-                <Zap className="w-4 h-4" /> {user.points} ball
+                <Zap className="w-4 h-4" /> {user.points} {t('common.points')}
               </span>
               <span className="flex items-center gap-1">
-                <Flame className="w-4 h-4" /> {user.streak} kun streak
+                <Flame className="w-4 h-4" /> {user.streak} {t('profile.dayStreak')}
               </span>
             </div>
           </div>
@@ -80,7 +82,7 @@ export default function Profile() {
             <div className="h-full bg-white rounded-full" style={{ width: `${levelProgress}%` }} />
           </div>
           <p className="text-xs text-white/60 mt-1">
-            Keyingi levelga {500 - (user.points % 500)} ball qoldi
+            {t('profile.nextA')}{500 - (user.points % 500)}{t('profile.nextB')}
           </p>
         </div>
       </div>
@@ -90,12 +92,12 @@ export default function Profile() {
         <div className="card text-center">
           <Award className="w-6 h-6 text-yellow-500 mx-auto mb-1" />
           <div className="text-2xl font-bold stat-number">{user.level}</div>
-          <div className="text-xs text-gray-500">Daraja</div>
+          <div className="text-xs text-gray-500">{t('dash.level')}</div>
         </div>
         <div className="card text-center">
-          <Zap className="w-6 h-6 text-blue-500 mx-auto mb-1" />
+          <Zap className="w-6 h-6 text-teal-500 mx-auto mb-1" />
           <div className="text-2xl font-bold stat-number">{user.points}</div>
-          <div className="text-xs text-gray-500">Ball</div>
+          <div className="text-xs text-gray-500">{t('common.pointsLabel')}</div>
         </div>
         <div className="card text-center">
           <Flame className="w-6 h-6 text-orange-500 mx-auto mb-1" />
@@ -105,17 +107,17 @@ export default function Profile() {
         <div className="card text-center">
           <CheckCircle className="w-6 h-6 text-green-500 mx-auto mb-1" />
           <div className="text-2xl font-bold stat-number">{stats?.completed_tasks || 0}</div>
-          <div className="text-xs text-gray-500">Bajarilgan</div>
+          <div className="text-xs text-gray-500">{t('profile.completed')}</div>
         </div>
       </div>
       
       {/* Progress */}
       {stats && (
         <div className="card mb-6">
-          <h3 className="font-semibold mb-3">Umumiy progress</h3>
+          <h3 className="font-semibold mb-3">{t('profile.overallProgress')}</h3>
           <div className="flex justify-between text-sm mb-2">
-            <span>{stats.completed_tasks} / {stats.total_tasks} topshiriq</span>
-            <span className="font-medium text-blue-600">{stats.progress_percent}%</span>
+            <span>{stats.completed_tasks} / {stats.total_tasks} {t('common.tasks')}</span>
+            <span className="font-medium text-teal-600">{stats.progress_percent}%</span>
           </div>
           <div className="progress-bar">
             <div className="progress-fill" style={{ width: `${stats.progress_percent}%` }} />
@@ -127,13 +129,13 @@ export default function Profile() {
       <div className="card">
         <h3 className="font-semibold mb-4 flex items-center gap-2">
           <User className="w-5 h-5" />
-          Ma'lumotlarni tahrirlash
+          {t('profile.editInfo')}
         </h3>
         
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Ism</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('auth.firstName')}</label>
               <input
                 type="text"
                 value={form.first_name}
@@ -142,7 +144,7 @@ export default function Profile() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Familiya</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('auth.lastName')}</label>
               <input
                 type="text"
                 value={form.last_name}
@@ -163,7 +165,7 @@ export default function Profile() {
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Login</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('auth.username')}</label>
             <input
               type="text"
               value={user.username}
@@ -173,7 +175,7 @@ export default function Profile() {
           </div>
           
           <button onClick={handleSave} disabled={saving} className="btn btn-primary">
-            {saving ? 'Saqlanmoqda...' : 'Saqlash'}
+            {saving ? t('profile.saving') : t('common.save')}
           </button>
         </div>
       </div>

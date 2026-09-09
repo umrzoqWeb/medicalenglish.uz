@@ -2,6 +2,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { Menu, X, LogIn, User, LogOut, Flame, Star, Activity } from 'lucide-react'
 import { useState } from 'react'
 import { useAuthStore } from '../store'
+import { useLang, useT, useFontScale } from '../i18n'
 
 const socials = [
   { name: 'Telegram', href: 'https://t.me/Sitora21', color: 'hover:bg-blue-500', icon: 'M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.161c-.18 1.897-.962 6.502-1.359 8.627-.168.9-.5 1.201-.82 1.23-.697.064-1.226-.461-1.901-.903-1.056-.692-1.653-1.123-2.678-1.799-1.185-.781-.417-1.21.258-1.911.177-.184 3.247-2.977 3.307-3.23.007-.032.015-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.139-5.062 3.345-.479.329-.913.489-1.302.481-.428-.009-1.252-.242-1.865-.442-.751-.244-1.349-.374-1.297-.789.027-.216.324-.437.893-.663 3.498-1.524 5.831-2.529 6.998-3.015 3.333-1.386 4.025-1.627 4.477-1.635.099-.002.321.023.465.141.121.099.154.232.17.324.015.092.034.303.019.468z' },
@@ -10,19 +11,45 @@ const socials = [
   { name: 'LinkedIn', href: 'https://www.linkedin.com/in/mukhamedjanova-sitora-859a921a9/', color: 'hover:bg-blue-700', icon: 'M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z' },
 ]
 
+function LangToggle({ className = '' }) {
+  const { lang, setLang } = useLang()
+  return (
+    <div className={`flex items-center rounded-lg overflow-hidden border border-white/20 text-xs font-bold ${className}`}>
+      <button onClick={() => setLang('uz')} className={`px-2 py-1 transition-colors ${lang === 'uz' ? 'bg-teal-500 text-white' : 'text-white/60 hover:text-white'}`}>UZ</button>
+      <button onClick={() => setLang('en')} className={`px-2 py-1 transition-colors ${lang === 'en' ? 'bg-teal-500 text-white' : 'text-white/60 hover:text-white'}`}>EN</button>
+    </div>
+  )
+}
+
+function FontSizeControl({ className = '' }) {
+  const { scale, setScale } = useFontScale()
+  const levels = [
+    { s: 100, cls: 'text-[11px]' },
+    { s: 115, cls: 'text-[13px]' },
+    { s: 130, cls: 'text-[15px]' },
+  ]
+  return (
+    <div className={`items-center rounded-lg overflow-hidden border border-white/20 ${className}`} title="Shrift o'lchami / Font size">
+      {levels.map((l) => (
+        <button key={l.s} onClick={() => setScale(l.s)} aria-label={`Font ${l.s}%`}
+          className={`px-2 py-1 leading-none font-bold ${l.cls} transition-colors ${scale === l.s ? 'bg-teal-500 text-white' : 'text-white/60 hover:text-white'}`}>A</button>
+      ))}
+    </div>
+  )
+}
+
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const { user, isAuthenticated, logout } = useAuthStore()
   const location = useLocation()
+  const t = useT()
   const isActive = (path) => location.pathname === path
 
   const navLinks = [
-    { to: '/', label: 'Bosh sahifa' },
-    { to: '/units', label: 'Mavzular' },
-    { to: '/leaderboard', label: 'Foydalanuvchilar' },
-    { to: '/news', label: "Yangiliklar" },
-    { to: '/about', label: 'About' },
-    { to: '/contact', label: 'Contact details' },
+    { to: '/', key: 'nav.home' },
+    { to: '/news', key: 'nav.news' },
+    { to: '/about', key: 'nav.about' },
+    { to: '/contact', key: 'nav.contact' },
   ]
 
   return (
@@ -42,7 +69,7 @@ export default function Header() {
               </div>
               <div className="hidden sm:block">
                 <h1 className="text-sm md:text-base font-black text-white leading-tight">Medical English Hub</h1>
-                <p className="text-[10px] md:text-xs font-semibold text-teal-300/80 tracking-widest">platform for medical students</p>
+                <p className="text-[10px] md:text-xs font-semibold text-teal-300/80 tracking-widest">{t('brand.tagline')}</p>
               </div>
             </Link>
 
@@ -55,13 +82,15 @@ export default function Header() {
                       ? 'bg-teal-500/20 text-teal-300 border border-teal-500/30'
                       : 'text-white/70 hover:text-white hover:bg-white/5'
                   }`}>
-                  {link.label}
+                  {t(link.key)}
                 </Link>
               ))}
             </nav>
 
-            {/* Right side: socials + auth */}
+            {/* Right side: lang + socials + auth */}
             <div className="flex items-center gap-2">
+              <LangToggle className="mr-1" />
+              <FontSizeControl className="hidden sm:flex mr-1" />
               {/* Social icons */}
               <div className="hidden md:flex items-center gap-1.5 mr-2">
                 {socials.map((s, i) => (
@@ -90,7 +119,7 @@ export default function Header() {
                 </div>
               ) : (
                 <Link to="/login" className="flex items-center gap-2 bg-gradient-to-r from-teal-400 to-cyan-400 text-slate-900 font-bold px-4 py-2 md:px-5 md:py-2.5 rounded-xl shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 hover:scale-105 transition-all text-sm">
-                  <LogIn className="w-4 h-4" /><span>Kirish</span>
+                  <LogIn className="w-4 h-4" /><span>{t('auth.login')}</span>
                 </Link>
               )}
               <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="lg:hidden p-2 text-white/80 hover:text-white">
@@ -114,6 +143,9 @@ export default function Header() {
                   </a>
                 ))}
               </div>
+              <div className="flex justify-center pb-3 mb-3 border-b border-white/10">
+                <FontSizeControl className="flex" />
+              </div>
               <div className="flex flex-col gap-1">
                 {navLinks.map(link => (
                   <Link key={link.to} to={link.to} onClick={() => setMobileMenuOpen(false)}
@@ -122,7 +154,7 @@ export default function Header() {
                         ? 'bg-teal-500/20 text-teal-300'
                         : 'text-white/70 hover:text-white hover:bg-white/5'
                     }`}>
-                    {link.label}
+                    {t(link.key)}
                   </Link>
                 ))}
               </div>

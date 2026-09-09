@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react'
 import { Trophy, Medal, Award, Users } from 'lucide-react'
 import api from '../services/api'
 import { useAuthStore } from '../store'
+import { useT } from '../i18n'
 
 export default function Leaderboard() {
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const { user: currentUser } = useAuthStore()
+  const t = useT()
   
   useEffect(() => {
     api.get('/leaderboard/').then(res => {
@@ -18,7 +20,7 @@ export default function Leaderboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+        <div className="animate-spin w-8 h-8 border-4 border-teal-500 border-t-transparent rounded-full"></div>
       </div>
     )
   }
@@ -44,8 +46,8 @@ export default function Leaderboard() {
           <Users className="w-5 h-5 text-yellow-600" />
         </div>
         <div>
-          <h1 className="text-xl font-bold">Foydalanuvchilar</h1>
-          <p className="text-sm text-gray-500">Eng yuqori ball to'plagan talabalar</p>
+          <h1 className="text-xl font-bold">{t('side.users')}</h1>
+          <p className="text-sm text-gray-500">{t('lead.subtitle')}</p>
         </div>
       </div>
       
@@ -65,9 +67,9 @@ export default function Leaderboard() {
                 <div className="font-semibold truncate">{u.first_name || u.username}</div>
                 <div className="flex items-center justify-center gap-1 mt-1">
                   {getRankIcon(rank)}
-                  <span className="font-bold text-blue-600">{u.best_score}%</span>
+                  <span className="font-bold text-teal-600">{u.best_score}%</span>
                 </div>
-                <div className="text-xs text-gray-500 mt-1">Test: {u.best_percentage}</div>
+                <div className="text-xs text-gray-500 mt-1">{t('lead.testLabel')}: {u.best_percentage}</div>
               </div>
             )
           })}
@@ -83,14 +85,14 @@ export default function Leaderboard() {
           return (
             <div key={u.id} className={`card flex items-center gap-4 py-3 ${
               getRankBg(rank)
-            } ${isCurrentUser ? 'ring-2 ring-blue-400' : ''}`}>
+            } ${isCurrentUser ? 'ring-2 ring-teal-400' : ''}`}>
               <div className="w-8 text-center">
                 {getRankIcon(rank)}
               </div>
               
               <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
                 rank <= 3 
-                  ? 'bg-gradient-to-br from-blue-500 to-purple-600 text-white' 
+                  ? 'bg-gradient-to-br from-teal-500 to-cyan-600 text-white' 
                   : 'bg-gray-100 text-gray-600'
               }`}>
                 {u.first_name?.[0] || u.username[0].toUpperCase()}
@@ -99,14 +101,14 @@ export default function Leaderboard() {
               <div className="flex-1 min-w-0">
                 <div className="font-medium truncate">
                   {u.first_name || u.username}
-                  {isCurrentUser && <span className="text-blue-500 text-xs ml-2">(Siz)</span>}
+                  {isCurrentUser && <span className="text-teal-500 text-xs ml-2">{t('lead.you')}</span>}
                 </div>
-                <div className="text-xs text-gray-500">Test: {u.best_percentage}</div>
+                <div className="text-xs text-gray-500">{t('lead.testLabel')}: {u.best_percentage}</div>
               </div>
               
               <div className="text-right">
                 <div className="font-bold text-lg stat-number">{u.best_score}%</div>
-                <div className="text-xs text-gray-500">test bali</div>
+                <div className="text-xs text-gray-500">{t('lead.testScore')}</div>
               </div>
             </div>
           )
@@ -115,7 +117,7 @@ export default function Leaderboard() {
       
       {users.length === 0 && (
         <div className="text-center py-12 text-gray-500">
-          Hali foydalanuvchilar yo'q
+          {t('lead.noUsers')}
         </div>
       )}
     </div>

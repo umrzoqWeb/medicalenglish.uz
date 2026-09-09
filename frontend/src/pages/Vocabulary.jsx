@@ -1,12 +1,15 @@
 import { useState, useEffect, useCallback } from "react";
 import { useLocation } from "react-router-dom";
-import { Search, Volume2, BookMarked, MessageCircle, Sparkles } from "lucide-react";
+import { Search, Volume2, BookMarked, MessageCircle, Sparkles, ChevronLeft, ChevronRight } from "lucide-react";
 import api from "../services/api";
+import { useT } from "../i18n";
+
+const PAGE_SIZE = 12;
 
 const pageConfig = {
-  '/vocabulary': { endpoint: '/vocabulary/', title: 'Glossariy', subtitle: 'Tibbiy ingliz tili lug\'ati', icon: BookMarked, color: 'bg-teal-100 text-teal-600', nameField: 'word', transField: 'translation' },
-  '/idioms': { endpoint: '/idioms/', title: 'Medical Idioms', subtitle: 'Tibbiyotga oid idiomalar', icon: MessageCircle, color: 'bg-emerald-100 text-emerald-600', nameField: 'idiom', transField: 'meaning' },
-  '/phrasal-verbs': { endpoint: '/phrasal-verbs/', title: 'Phrasal Verbs', subtitle: 'Tibbiyotga oid phrasal verblar', icon: Sparkles, color: 'bg-cyan-100 text-cyan-600', nameField: 'verb', transField: 'meaning' },
+  '/vocabulary': { endpoint: '/vocabulary/', titleKey: 'voc.glossary.title', subKey: 'voc.glossary.sub', icon: BookMarked, color: 'bg-teal-100 text-teal-600', nameField: 'word', transField: 'translation' },
+  '/idioms': { endpoint: '/idioms/', titleKey: 'voc.idioms.title', subKey: 'voc.idioms.sub', icon: MessageCircle, color: 'bg-emerald-100 text-emerald-600', nameField: 'idiom', transField: 'meaning' },
+  '/phrasal-verbs': { endpoint: '/phrasal-verbs/', titleKey: 'voc.phrasal.title', subKey: 'voc.phrasal.sub', icon: Sparkles, color: 'bg-cyan-100 text-cyan-600', nameField: 'verb', transField: 'meaning' },
 };
 
 function SpeakButton({ text, accent }) {
@@ -46,18 +49,23 @@ export default function Vocabulary() {
   const [words, setWords] = useState([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
   const location = useLocation();
+  const t = useT();
   const config = pageConfig[location.pathname] || pageConfig['/vocabulary'];
   const Icon = config.icon;
 
   useEffect(() => {
     setLoading(true);
     setSearch("");
+    setPage(1);
     api.get(config.endpoint).then((res) => {
       setWords(Array.isArray(res.data) ? res.data : res.data.results || []);
       setLoading(false);
     }).catch(() => setLoading(false));
   }, [location.pathname]);
+
+  useEffect(() => { setPage(1); }, [search]);
 
   const getName = (w) => w[config.nameField] || w.word || w.idiom || w.verb || '';
   const getTrans = (w) => w[config.transField] || w.translation || w.meaning || '';
@@ -66,6 +74,15 @@ export default function Vocabulary() {
     getName(w).toLowerCase().includes(search.toLowerCase()) ||
     getTrans(w).toLowerCase().includes(search.toLowerCase())
   );
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const paged = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+
+  const goPage = (n) => {
+    setPage(Math.min(Math.max(1, n), totalPages));
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   if (loading) {
     return (
@@ -82,20 +99,20 @@ export default function Vocabulary() {
           <Icon className={`w-5 h-5 ${config.color.split(' ')[1]}`} />
         </div>
         <div>
-          <h1 className="text-xl font-bold">{config.title}</h1>
-          <p className="text-sm text-gray-500">{config.subtitle}</p>
+          <h1 className="text-xl font-bold">{t(config.titleKey)}</h1>
+          <p className="text-sm text-gray-500">{t(config.subKey)}</p>
         </div>
-        <span className="ml-auto text-sm text-gray-400">{words.length} ta</span>
+        <span className="ml-auto text-sm text-gray-400">{words.length} {t('common.count')}</span>
       </div>
 
       <div className="relative mb-6">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
         <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
-          className="input" style={{ paddingLeft: "2.5rem" }} placeholder="Qidirish..." />
+          className="input" style={{ paddingLeft: "2.5rem" }} placeholder={t('common.search')} />
       </div>
 
       <div className="grid gap-3">
-        {filtered.map((word, i) => (
+        {paged.map((word, i) => (
           <div key={word.id || i} className="card">
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1 min-w-0">
@@ -120,7 +137,30 @@ export default function Vocabulary() {
       </div>
 
       {filtered.length === 0 && (
-        <div className="text-center py-12 text-gray-500">Hech narsa topilmadi</div>
+        <div className="text-center py-12 text-gray-500">{t('common.notFound')}</div>
+      )}
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center flex-wrap gap-1.5 mt-8">
+          <button onClick={() => goPage(safePage - 1)} disabled={safePage === 1}
+            className="inline-flex items-center gap-1 px-3 h-9 rounded-lg text-sm font-medium border border-gray-200 bg-white text-gray-600 hover:border-teal-400 hover:text-teal-600 disabled:opacity-40 disabled:cursor-not-allowed transition">
+            <ChevronLeft className="w-4 h-4" /> {t('common.prev')}
+          </button>
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
+            <button key={n} onClick={() => goPage(n)}
+              className={`w-9 h-9 rounded-lg text-sm font-semibold border transition ${
+                n === safePage
+                  ? 'bg-teal-500 text-white border-teal-500 shadow-sm'
+                  : 'bg-white text-gray-600 border-gray-200 hover:border-teal-400 hover:text-teal-600'
+              }`}>
+              {n}
+            </button>
+          ))}
+          <button onClick={() => goPage(safePage + 1)} disabled={safePage === totalPages}
+            className="inline-flex items-center gap-1 px-3 h-9 rounded-lg text-sm font-medium border border-gray-200 bg-white text-gray-600 hover:border-teal-400 hover:text-teal-600 disabled:opacity-40 disabled:cursor-not-allowed transition">
+            {t('common.next')} <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
       )}
     </div>
   );

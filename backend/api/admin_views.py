@@ -111,7 +111,7 @@ class AdminQuizResultsView(APIView):
     permission_classes = [IsAdminUser]
     def get(self, request):
         from .models import QuizResult
-        results = QuizResult.objects.select_related('user').all()[:100]
+        results = QuizResult.objects.select_related('user').all()
         return Response([{'id':r.id,'username':r.user.username,'score':r.score,'total':r.total,'percentage':r.percentage,'created_at':r.created_at} for r in results])
 
 class AdminQuizSettingsView(APIView):
@@ -140,14 +140,39 @@ class AdminProgressView(APIView):
         if user_id: qs = qs.filter(user_id=user_id)
         if unit_id: qs = qs.filter(task__unit_id=unit_id)
         data = [{'id':p.id,'username':p.user.username,'first_name':p.user.first_name,'unit_number':p.task.unit.number,'unit_title':p.task.unit.title,'task_number':p.task.number,'task_title':p.task.title,'task_type':p.task.task_type,'score':p.score,'completed':p.completed,'attempts':p.attempts,'completed_at':p.completed_at} for p in qs[:500]]
+        from .models import Task, QuizResult
+        total_tasks = Task.objects.count()  # 195
         users = User.objects.filter(is_staff=False)
         summary = []
         for u in users:
             ups = UserProgress.objects.filter(user=u)
-            total = ups.count()
             done = ups.filter(completed=True).count()
+            if done == 0:
+                continue
             avg = list(ups.filter(completed=True).values_list('score', flat=True))
-            avg_score = round(sum(avg)/len(avg)) if avg else 0
-            if total > 0:
-                summary.append({'id':u.id,'username':u.username,'name':f'{u.first_name} {u.last_name}'.strip() or u.username,'completed':done,'total':total,'avg_score':avg_score,'points':u.points})
+            avg_score = min(100, round(sum(avg)*10/len(avg))) if avg else 0
+            # Quiz result
+            quiz = QuizResult.objects.filter(user=u).order_by('-created_at').first()
+            test_pct = quiz.percentage if quiz else 0
+            if test_pct >= 90:
+                grade = 5
+            elif test_pct >= 75:
+                grade = 4
+            elif test_pct >= 60:
+                grade = 3
+            else:
+                grade = 2
+            uni_name = u.university.short_name if u.university else '-'
+            summary.append({
+                'id': u.id,
+                'username': u.username,
+                'name': f'{u.first_name} {u.last_name}'.strip() or u.username,
+                'uni': uni_name,
+                'completed': done,
+                'total': total_tasks,
+                'avg_score': avg_score,
+                'test_pct': test_pct,
+                'grade': grade,
+            })
+        summary.sort(key=lambda x: (-x['grade'], -x['test_pct']))
         return Response({'progress':data,'summary':summary})

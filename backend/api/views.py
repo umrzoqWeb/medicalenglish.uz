@@ -8,11 +8,11 @@ from django.utils import timezone
 import unicodedata
 import re
 
-from .models import Badge, UserBadge, Unit, Task, TaskQuestion, UserProgress, Vocabulary, MedicalIdiom, PhrasalVerb
+from .models import Badge, UserBadge, Unit, Task, TaskQuestion, UserProgress, Vocabulary, MedicalIdiom, PhrasalVerb, University
 from .serializers import (
     UserSerializer, RegisterSerializer, BadgeSerializer, UserBadgeSerializer,
     UnitSerializer, UnitListSerializer, TaskSerializer, TaskListSerializer,
-    UserProgressSerializer, VocabularySerializer, MedicalIdiomSerializer, PhrasalVerbSerializer, LeaderboardSerializer
+    UserProgressSerializer, VocabularySerializer, MedicalIdiomSerializer, PhrasalVerbSerializer, LeaderboardSerializer, UniversitySerializer, StudentListSerializer
 )
 from .services import AIService
 
@@ -441,3 +441,68 @@ class QuizResultsView(APIView):
         from .models import QuizResult
         results = QuizResult.objects.filter(user=request.user)[:20]
         return Response([{'id':r.id,'score':r.score,'total':r.total,'percentage':r.percentage,'created_at':r.created_at} for r in results])
+
+
+class UniversityListView(generics.ListAPIView):
+    queryset = University.objects.all()
+    serializer_class = UniversitySerializer
+    permission_classes = [AllowAny]
+
+
+class StudentListView(generics.ListAPIView):
+    serializer_class = StudentListSerializer
+    permission_classes = [AllowAny]
+
+    def get_queryset(self):
+        qs = User.objects.filter(university__isnull=False).select_related('university').order_by('university__order', 'username')
+        uni_id = self.request.query_params.get('university')
+        if uni_id:
+            qs = qs.filter(university_id=uni_id)
+        return qs
+
+
+class UniversityStatsView(generics.RetrieveAPIView):
+    permission_classes = [AllowAny]
+    
+    def get(self, request, pk):
+        from .models import University, QuizResult, UserProgress, Task
+        uni = University.objects.get(pk=pk)
+        students = User.objects.filter(university=uni).order_by('username')
+        total_tasks = Task.objects.count()
+        results = QuizResult.objects.filter(user__university=uni)
+        
+        g5 = results.filter(percentage__gte=90).count()
+        g4 = results.filter(percentage__gte=75, percentage__lt=90).count()
+        g3 = results.filter(percentage__gte=60, percentage__lt=75).count()
+        g2 = results.filter(percentage__lt=60).count()
+        avg_pct = round(sum(r.percentage for r in results) / results.count()) if results.exists() else 0
+        
+        student_data = []
+        for s in students:
+            quiz = QuizResult.objects.filter(user=s).order_by('-created_at').first()
+            test_pct = quiz.percentage if quiz else 0
+            grade = 5 if test_pct >= 90 else 4 if test_pct >= 75 else 3 if test_pct >= 60 else 2
+            
+            ups = UserProgress.objects.filter(user=s, completed=True)
+            done = ups.count()
+            scores = list(ups.values_list('score', flat=True))
+            avg_score = min(100, round(sum(scores)*10/len(scores))) if scores else 0
+            
+            student_data.append({
+                'id': s.id, 'username': s.username,
+                'name': f'{s.first_name} {s.last_name}'.strip(),
+                'plain_password': s.plain_password,
+                'completed': done, 'total': total_tasks,
+                'avg_score': avg_score, 'test_pct': test_pct, 'grade': grade,
+                'points': s.points, 'streak': s.streak,
+            })
+        
+        student_data.sort(key=lambda x: (-x['grade'], -x['test_pct']))
+        
+        return Response({
+            'university': {'id': uni.id, 'name': uni.name, 'short_name': uni.short_name, 'student_count': uni.student_count},
+            'grades': {'g5': g5, 'g4': g4, 'g3': g3, 'g2': g2},
+            'avg_percentage': avg_pct,
+            'total_tasks': total_tasks,
+            'students': student_data,
+        })

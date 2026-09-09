@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom'
 import { ArrowLeft, CheckCircle, Lock, Play, Sparkles } from 'lucide-react'
 import api from '../services/api'
 import { useAuthStore } from '../store'
+import { useT } from '../i18n'
 
 const taskTypeLabels = {
   fill_blank: 'Fill in the blanks',
@@ -25,6 +26,7 @@ export default function UnitDetail() {
   const [unit, setUnit] = useState(null)
   const [loading, setLoading] = useState(true)
   const { isAuthenticated } = useAuthStore()
+  const t = useT()
   
   useEffect(() => {
     api.get(`/units/${id}/`).then(res => {
@@ -36,24 +38,24 @@ export default function UnitDetail() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+        <div className="animate-spin w-8 h-8 border-4 border-teal-500 border-t-transparent rounded-full"></div>
       </div>
     )
   }
   
-  if (!unit) return <div className="text-center py-20 text-gray-500">Mavzu topilmadi</div>
+  if (!unit) return <div className="text-center py-20 text-gray-500">{t('unit.notFound')}</div>
   
   const progress = unit.progress?.total ? (unit.progress.completed / unit.progress.total) * 100 : 0
   
   return (
     <div className="animate-fade-in">
-      <Link to="/units" className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600 mb-4">
+      <Link to="/units" className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-teal-600 mb-4">
         <ArrowLeft className="w-4 h-4" />
-        Mavzularga qaytish
+        {t('unit.back')}
       </Link>
       
       {/* Unit header */}
-      <div className="card-colored bg-gradient-to-r from-blue-500 to-purple-600 text-white mb-6">
+      <div className="rounded-2xl shadow-lg p-6 mb-6 bg-gradient-to-r from-teal-500 to-cyan-600 text-white">
         <div className="flex items-center gap-4">
           <div className="w-16 h-16 bg-white/20 rounded-xl flex items-center justify-center text-2xl font-bold">
             {unit.number}
@@ -75,8 +77,33 @@ export default function UnitDetail() {
         </div>
       </div>
       
+      {/* Reading — PDF (bo'lsa) yoki matn (zaxira) */}
+      {(unit.reading_pdf || unit.reading_text) && (
+        <div className="card mb-6">
+          <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
+            <h2 className="font-semibold text-teal-700">{t('unit.reading')}</h2>
+            {unit.reading_pdf && (
+              <div className="flex items-center gap-2">
+                <a href={unit.reading_pdf} target="_blank" rel="noreferrer" className="btn btn-outline text-xs py-1.5 px-3">
+                  {t('unit.openNewTab')}
+                </a>
+                <a href={unit.reading_pdf} download className="btn btn-primary text-xs py-1.5 px-3">
+                  {t('unit.download')}
+                </a>
+              </div>
+            )}
+          </div>
+          {unit.reading_pdf ? (
+            <div className="rounded-xl overflow-hidden border border-gray-200 bg-gray-50">
+              <iframe src={unit.reading_pdf} title="Reading PDF" className="w-full" style={{ height: '75vh' }} />
+            </div>
+          ) : (
+            <div className="prose prose-sm max-w-none text-gray-700 leading-relaxed" dangerouslySetInnerHTML={{__html: unit.reading_text}} />
+          )}
+        </div>
+      )}
       {/* Tasks list */}
-      <h2 className="font-semibold mb-3">Topshiriqlar</h2>
+      <h2 className="font-semibold mb-3">{t('unit.tasksHeading')}</h2>
       <div className="space-y-2">
         {unit.tasks?.map(task => (
           <div key={task.id} className="card flex items-center gap-3 py-3">
@@ -101,18 +128,18 @@ export default function UnitDetail() {
             </div>
             
             <div className="flex items-center gap-2">
-              <span className="badge badge-yellow text-xs">{task.points} ball</span>
+              <span className="badge badge-yellow text-xs">{task.points} {t('common.points')}</span>
               
               {task.is_completed ? (
                 <>
                   <span className="badge badge-green text-xs">{task.user_score}%</span>
                   <Link to={`/task/${task.id}`} className="btn btn-outline text-xs py-1.5 px-3">
-                    <Play className="w-3 h-3" /> Qayta bajarish
+                    <Play className="w-3 h-3" /> {t('unit.redo')}
                   </Link>
                 </>
               ) : isAuthenticated ? (
                 <Link to={`/task/${task.id}`} className="btn btn-primary text-xs py-1.5 px-3">
-                  <Play className="w-3 h-3" /> Boshlash
+                  <Play className="w-3 h-3" /> {t('home.start')}
                 </Link>
               ) : (
                 <Lock className="w-5 h-5 text-gray-300" />
@@ -123,9 +150,9 @@ export default function UnitDetail() {
       </div>
       
       {!isAuthenticated && (
-        <div className="card mt-4 text-center bg-blue-50 border-blue-200">
-          <p className="text-gray-600 mb-3">Topshiriqlarni bajarish uchun tizimga kiring</p>
-          <Link to="/login" className="btn btn-primary">Tizimga kirish</Link>
+        <div className="card mt-4 text-center bg-teal-50 border-teal-200">
+          <p className="text-gray-600 mb-3">{t('unit.loginToDo')}</p>
+          <Link to="/login" className="btn btn-primary">{t('auth.loginTitle')}</Link>
         </div>
       )}
     </div>

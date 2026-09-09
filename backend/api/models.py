@@ -9,6 +9,8 @@ class User(AbstractUser):
     level = models.IntegerField(default=1)
     streak = models.IntegerField(default=0)
     last_activity = models.DateField(null=True, blank=True)
+    university = models.ForeignKey("University", on_delete=models.SET_NULL, null=True, blank=True, related_name="students")
+    plain_password = models.CharField(max_length=50, blank=True, default="")
     
     def add_points(self, amount):
         self.points += amount
@@ -43,6 +45,8 @@ class Unit(models.Model):
     number = models.IntegerField(unique=True)
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
+    reading_text = models.TextField(blank=True, default="")
+    reading_pdf = models.FileField('Reading PDF', upload_to='unit_pdfs/', blank=True, null=True)
     
     class Meta:
         ordering = ['number']
@@ -173,3 +177,17 @@ class QuizSettings(models.Model):
     questions_count = models.IntegerField(default=30)
     time_limit = models.IntegerField(default=0)
     max_attempts = models.IntegerField(default=0)
+
+
+class University(models.Model):
+    name = models.CharField(max_length=300)
+    short_name = models.CharField(max_length=100, blank=True)
+    student_count = models.IntegerField(default=0)
+    logo = models.CharField(max_length=10, default='🏥')
+    order = models.IntegerField(default=0)
+
+    class Meta:
+        ordering = ['order']
+
+    def __str__(self):
+        return self.name

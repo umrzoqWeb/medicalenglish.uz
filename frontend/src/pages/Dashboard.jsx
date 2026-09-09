@@ -9,11 +9,13 @@ import { CircularProgressbar, buildStyles } from 'react-circular-progressbar'
 import 'react-circular-progressbar/dist/styles.css'
 import { dashboardAPI } from '../services/api'
 import { useAuthStore } from '../store'
+import { useT } from '../i18n'
 
 export default function Dashboard() {
   const [dashboard, setDashboard] = useState(null)
   const [loading, setLoading] = useState(true)
   const { user } = useAuthStore()
+  const t = useT()
   
   useEffect(() => {
     fetchDashboard()
@@ -51,10 +53,10 @@ export default function Dashboard() {
           className="mb-8"
         >
           <h1 className="text-3xl font-display font-bold text-gray-900 mb-2">
-            Salom, {user?.first_name || user?.username}! 👋
+            {t('dash.hello')}, {user?.first_name || user?.username}! 👋
           </h1>
           <p className="text-gray-600">
-            Bugun ham o'rganishni davom ettiramiz
+            {t('dash.subtitle')}
           </p>
         </motion.div>
         
@@ -68,7 +70,7 @@ export default function Dashboard() {
             className="card-gradient p-6"
           >
             <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
+              <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-emerald-500 rounded-xl flex items-center justify-center">
                 <Trophy className="w-6 h-6 text-white" />
               </div>
               <div className="w-16 h-16">
@@ -84,9 +86,9 @@ export default function Dashboard() {
                 />
               </div>
             </div>
-            <p className="text-2xl font-bold text-gray-900">Daraja {user?.level || 1}</p>
+            <p className="text-2xl font-bold text-gray-900">{t('dash.level')} {user?.level || 1}</p>
             <p className="text-sm text-gray-500">
-              Keyingi darajagacha {nextLevelPoints} XP
+              {t('dash.nextA')}{nextLevelPoints}{t('dash.nextB')}
             </p>
           </motion.div>
           
@@ -103,7 +105,7 @@ export default function Dashboard() {
             <p className="text-2xl font-bold text-gray-900">
               {(dashboard?.total_points || 0).toLocaleString()}
             </p>
-            <p className="text-sm text-gray-500">Jami ballar</p>
+            <p className="text-sm text-gray-500">{t('dash.totalPoints')}</p>
           </motion.div>
           
           {/* Streak Card */}
@@ -117,10 +119,10 @@ export default function Dashboard() {
               <Flame className="w-6 h-6 text-white streak-fire" />
             </div>
             <p className="text-2xl font-bold text-gray-900">
-              {dashboard?.current_streak || 0} kun
+              {dashboard?.current_streak || 0} {t('dash.days')}
             </p>
             <p className="text-sm text-gray-500">
-              Joriy streak (eng yuqori: {dashboard?.longest_streak || 0})
+              {t('dash.streakA')}{dashboard?.longest_streak || 0}{t('dash.streakB')}
             </p>
           </motion.div>
           
@@ -131,14 +133,14 @@ export default function Dashboard() {
             transition={{ delay: 0.25 }}
             className="card-gradient p-6"
           >
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center mb-4">
+            <div className="w-12 h-12 bg-gradient-to-br from-teal-500 to-cyan-500 rounded-xl flex items-center justify-center mb-4">
               <TrendingUp className="w-6 h-6 text-white" />
             </div>
             <p className="text-2xl font-bold text-gray-900">
               #{dashboard?.rank || '-'}
             </p>
             <p className="text-sm text-gray-500">
-              {dashboard?.total_users || 0} foydalanuvchi ichida
+              {dashboard?.total_users || 0} {t('dash.usersAmong')}
             </p>
           </motion.div>
         </div>
@@ -153,13 +155,13 @@ export default function Dashboard() {
           >
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-display font-semibold text-gray-900">
-                Mavzular bo'yicha progress
+                {t('dash.progressByUnit')}
               </h2>
               <Link 
                 to="/units" 
                 className="text-primary-600 hover:text-primary-700 font-medium text-sm flex items-center gap-1"
               >
-                Barchasini ko'rish
+                {t('dash.viewAll')}
                 <ChevronRight className="w-4 h-4" />
               </Link>
             </div>
@@ -224,16 +226,16 @@ export default function Dashboard() {
               className="card-gradient p-6"
             >
               <h2 className="text-xl font-display font-semibold text-gray-900 mb-4">
-                Statistika
+                {t('dash.stats')}
               </h2>
               
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                      <BookOpen className="w-5 h-5 text-blue-600" />
+                    <div className="w-10 h-10 bg-teal-100 rounded-lg flex items-center justify-center">
+                      <BookOpen className="w-5 h-5 text-teal-600" />
                     </div>
-                    <span className="text-gray-600">Tugatilgan mavzular</span>
+                    <span className="text-gray-600">{t('dash.completedUnits')}</span>
                   </div>
                   <span className="font-bold text-gray-900">
                     {dashboard?.completed_units || 0}/15
@@ -245,7 +247,7 @@ export default function Dashboard() {
                     <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
                       <Target className="w-5 h-5 text-green-600" />
                     </div>
-                    <span className="text-gray-600">Bajarilgan topshiriqlar</span>
+                    <span className="text-gray-600">{t('dash.completedTasks')}</span>
                   </div>
                   <span className="font-bold text-gray-900">
                     {dashboard?.completed_tasks || 0}
@@ -254,10 +256,10 @@ export default function Dashboard() {
                 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                      <Award className="w-5 h-5 text-purple-600" />
+                    <div className="w-10 h-10 bg-cyan-100 rounded-lg flex items-center justify-center">
+                      <Award className="w-5 h-5 text-cyan-600" />
                     </div>
-                    <span className="text-gray-600">O'rtacha ball</span>
+                    <span className="text-gray-600">{t('dash.avgScore')}</span>
                   </div>
                   <span className="font-bold text-gray-900">
                     {Math.round(dashboard?.average_score || 0)}%
@@ -274,7 +276,7 @@ export default function Dashboard() {
               className="card-gradient p-6"
             >
               <h2 className="text-xl font-display font-semibold text-gray-900 mb-4">
-                So'nggi yutuqlar
+                {t('dash.recentBadges')}
               </h2>
               
               {dashboard?.recent_badges?.length > 0 ? (
@@ -302,8 +304,8 @@ export default function Dashboard() {
                   <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
                     <Award className="w-8 h-8 text-gray-400" />
                   </div>
-                  <p className="text-gray-500">Hali yutuqlar yo'q</p>
-                  <p className="text-sm text-gray-400">Topshiriqlarni bajaring!</p>
+                  <p className="text-gray-500">{t('dash.noBadges')}</p>
+                  <p className="text-sm text-gray-400">{t('dash.doTasks')}</p>
                 </div>
               )}
             </motion.div>
@@ -320,8 +322,8 @@ export default function Dashboard() {
                   <Zap className="w-6 h-6" />
                 </div>
                 <div>
-                  <p className="font-semibold">O'rganishni davom eting</p>
-                  <p className="text-sm text-white/70">Streak ni yo'qotmang!</p>
+                  <p className="font-semibold">{t('dash.keepLearning')}</p>
+                  <p className="text-sm text-white/70">{t('dash.dontLose')}</p>
                 </div>
               </div>
               
@@ -330,7 +332,7 @@ export default function Dashboard() {
                 className="flex items-center justify-center gap-2 w-full py-3 bg-white text-primary-600 font-semibold rounded-xl hover:bg-white/90 transition-colors"
               >
                 <Play className="w-5 h-5" />
-                Davom etish
+                {t('dash.continue')}
               </Link>
             </motion.div>
           </div>
@@ -345,17 +347,17 @@ export default function Dashboard() {
             className="mt-6 card-gradient p-6"
           >
             <h2 className="text-xl font-display font-semibold text-gray-900 mb-4">
-              So'nggi faollik
+              {t('dash.recentActivity')}
             </h2>
             
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="text-left text-sm text-gray-500 border-b border-gray-100">
-                    <th className="pb-3 font-medium">Topshiriq</th>
-                    <th className="pb-3 font-medium">Ball</th>
+                    <th className="pb-3 font-medium">{t('common.task')}</th>
+                    <th className="pb-3 font-medium">{t('dash.score')}</th>
                     <th className="pb-3 font-medium">XP</th>
-                    <th className="pb-3 font-medium">Vaqt</th>
+                    <th className="pb-3 font-medium">{t('dash.time')}</th>
                   </tr>
                 </thead>
                 <tbody>
